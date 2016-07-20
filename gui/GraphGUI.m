@@ -451,12 +451,6 @@ if handles.clickDown ~= 0
     handles.eDT = setEVoronoi(handles);
 end
 guidata(hObject,handles)
-
-
-function s = redraw(s)  
-s.control
-splineDraw(s, s.handles);
-
     
 function buttonPress(hObject,eventdata)
 handles = guidata(hObject);
@@ -727,7 +721,7 @@ handles.vDT = setVVoronoi(handles); handles.eDT = setEVoronoi(handles);
 guidata(hObject,handles)
 showGraph_Callback(handles.showGraph, eventdata, handles)
 
-%% Menu items
+%% Menu items @@@ DO NOT EDIT @@@
 
 function file_Callback(hObject, eventdata, handles)
 % hObject    handle to file (see GCBO)
