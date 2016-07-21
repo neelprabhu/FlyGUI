@@ -1,4 +1,4 @@
-function statistics = getCellData(data, ALL, centroids)
+function cellStats = getCellData(handles)
 % Computes biologically relevant parameters of cells from pre-processed
 % image stack.
 %
@@ -12,7 +12,16 @@ function statistics = getCellData(data, ALL, centroids)
 % cellPerimeter: Perimeters
 
 %% Get stats
-statistics = gatherDataStats(size(ALL),data);
+data      = handles.masterData;
+ALL       = handles.ALL;
+polygons  = handles.polygons;
+centroids = handles.centroids;
+click     = handles.cp;
+
+stats     = gatherDataStats(size(ALL),data);
 
 %% Get index over time
+
+
+
 

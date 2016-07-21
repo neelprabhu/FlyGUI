@@ -1,7 +1,8 @@
-function [polyCell,centroidCell] = makeCellPolygons(data,frame)
+function handles = makeCellPolygons(handles,frame)
 
 % @author Neel K. Prabhu
 
+data         = handles.masterData;
 face         = data(frame).FACELIST;
 vertex       = data(frame).VALL;
 edge         = data(frame).EALL; % Grab data
@@ -17,6 +18,9 @@ for n = 1:numcells % For every cell in the frame
     end
     centroidCell(n,:) = mean(polyCell{n});
 end
+
+handles.polygons{frame}  = polyCell;
+handles.centroids{frame} = centroidCell; 
 
 % axis(gca)
 % plot(centroidCell(:,1),centroidCell(:,2),'go','MarkerFaceColor','b','MarkerSize',5)

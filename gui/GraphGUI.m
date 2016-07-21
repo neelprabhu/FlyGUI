@@ -374,6 +374,12 @@ end
 handles.oldData = handles.masterData;
 guidata(hObject,handles)
 
+% Begin parameter extraction
+handles = guidata(hObject);
+if handles.getStats
+    handles.cellStats = getCellData(handles); % Get major statistics for every frame
+end
+
 function trackPoint(hObject,eventdata)
 handles = guidata(hObject);    
 if handles.vertexIdx ~= -1 && handles.vD < handles.eD
@@ -821,7 +827,11 @@ function getParameters_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(hObject);
-[handles.polygons,handles.centroids] = makeCellPolygons(handles.masterData,handles.f);
-handles.cellStats = getCellData(handles.masterData,handles.ALL,handles.centroids);
+tic;
+for frame = 1:size(handles.masterData,2)
+    handles = makeCellPolygons(handles,frame); % Get polygons and centroids for every cell, every frame
+end
+toc;
+handles.getStats = 1; % Activate boolean
 fprintf('Choose a cell!\n')
 guidata(hObject,handles)
