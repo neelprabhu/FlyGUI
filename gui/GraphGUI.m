@@ -822,4 +822,6 @@ function getParameters_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(hObject);
 [handles.polygons,handles.centroids] = makeCellPolygons(handles.masterData,handles.f);
+handles.cellStats = getCellData(handles.masterData,handles.ALL,handles.centroids);
+fprintf('Choose a cell!\n')
 guidata(hObject,handles)
