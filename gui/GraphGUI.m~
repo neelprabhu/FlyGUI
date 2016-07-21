@@ -357,6 +357,8 @@ if handles.vD < handles.eD
     set(vProps,'MarkerEdgeColor','g','MarkerFaceColor','g')
     handles.prevVIdx = handles.vertexIdx; % Sets previous vertex equal to current
     handles.onE = false; handles.onV = true;
+    guidata(hObject,handles)
+    return;
 else
     hold on;
     set(eprevProps,'Color','y')
@@ -366,6 +368,8 @@ else
     set(cProps,'Visible','on')
     handles.prevEIdx = handles.edgeIdx;
     handles.onE = true; handles.onV = false;
+        guidata(hObject,handles)
+    return;
 end
 handles.oldData = handles.masterData;
 guidata(hObject,handles)
@@ -469,7 +473,7 @@ end
 
 function handles = deleteVE(handles)
 if handles.onV
-    handles.oldData = handles.masterData;
+    handles.oldData = handle
     index = handles.vIndex;
     set(handles.vH{index},'Visible','off')
     
@@ -580,7 +584,6 @@ if handles.onV
     end
 end
 if handles.onE
-    handles.oldData = handles.masterData;
     index = handles.eIndex;
     ctrlMatrix = handles.masterData(handles.f).EALL{index}.control;
     vIndex1 = nearestNeighbor(handles.vDT,ctrlMatrix(:,1)');
