@@ -815,3 +815,11 @@ function undo_Callback(hObject, eventdata, handles)
 handles.masterData = handles.oldData;
 guidata(hObject,handles)
 showGraph_Callback(handles.showGraph,eventdata,handles);
+
+function getParameters_Callback(hObject, eventdata, handles)
+% hObject    handle to getParameters (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(hObject);
+[handles.polygons,handles.centroids] = makeCellPolygons(handles.masterData,handles.f);
+guidata(hObject,handles)

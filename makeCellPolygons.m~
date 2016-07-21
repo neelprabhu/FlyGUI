@@ -1,0 +1,22 @@
+function [polyCell,centroidCell] = makeCellPolygons(data,frame)
+
+% polyMatrix is going to be (n x 2) matrix.
+
+face         = data(frame).FACELIST;
+vertex       = data(frame).VALL;
+edge         = data(frame).EALL; % Grab data
+numcells     = size(face,1);
+polyCell     = cell(numcells,1); % Empty matrices here
+centroidCell = zeros(numcells,2);
+
+for n = 1:numcells % For every cell in the frame
+    faceMatrix = face{n};
+    for m = 1:size(faceMatrix,2) % For every pairing per cell
+        polyCell{n} = [polyCell{n};vertex{faceMatrix(1,m)}'; ...
+            edge{faceMatrix(2,m)}.curve(:,ceil(end/2))']; % Append points
+    end
+    centroidCell(n,:) = mean(polyCell{n});
+end
+
+hold on
+plot(centroidCell(:,1
