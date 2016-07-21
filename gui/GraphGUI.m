@@ -812,7 +812,6 @@ function undo_Callback(hObject, eventdata, handles)
 % hObject    handle to Undo (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-disp('hello');
 handles.masterData = handles.oldData;
 guidata(hObject,handles)
 showGraph_Callback(handles.showGraph,eventdata,handles);

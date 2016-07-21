@@ -3,7 +3,7 @@ function statistics = getCellData(data, ALL, centroids)
 % image stack.
 %
 % INPUTS
-% ALL: Image stack now.
+% ALL: Image stack.
 % data: Graph data struct.
 % centroids: Centroids of cells to get data from.
 %
