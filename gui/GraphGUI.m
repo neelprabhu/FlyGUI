@@ -80,6 +80,7 @@ if ~isempty(ALL)
     handles.zStY = 20; handles.zStoY = size(handles.ALL(:,:,1),1)-19; % Zoom settings
     [V,E,A,F] = embryoInitGraph(handles.GT,20,false);
     handles.masterData = struct('VALL',{V},'EALL',{E},'ADJLIST',{A},'FACELIST',{F});
+    handles.oldData = handles.masterData;
     handles.f = 1; % default frame
     handles.vDT = setVVoronoi(handles);
     handles.eDT = setEVoronoi(handles);
@@ -123,7 +124,7 @@ end
 
 % Adding vertex
 if handles.addVertex
-    
+    handles.oldData = handles.masterData;
     eI = handles.edgeIdx;
     tmpS = masterData(handles.f).EALL{eI};
     tmpCurve =  tmpS.curve;
@@ -278,7 +279,7 @@ if handles.addVertex
     return;
 end
 
-if handles.addEdge == 1    
+if handles.addEdge == 1  
     handles.E1 = handles.vertexIdx;
     handles.addEdge = 2;
     guidata(hObject,handles)
@@ -286,6 +287,7 @@ if handles.addEdge == 1
 end
 
 if handles.addEdge == 2
+    handles.oldData = handles.masterData;
     handles.E2 = handles.vertexIdx;
     handles.addEdge = 1;
     
@@ -355,6 +357,8 @@ if handles.vD < handles.eD
     set(vProps,'MarkerEdgeColor','g','MarkerFaceColor','g')
     handles.prevVIdx = handles.vertexIdx; % Sets previous vertex equal to current
     handles.onE = false; handles.onV = true;
+    guidata(hObject,handles)
+    return;
 else
     hold on;
     set(eprevProps,'Color','y')
@@ -364,7 +368,10 @@ else
     set(cProps,'Visible','on')
     handles.prevEIdx = handles.edgeIdx;
     handles.onE = true; handles.onV = false;
+        guidata(hObject,handles)
+    return;
 end
+handles.oldData = handles.masterData;
 guidata(hObject,handles)
 
 function trackPoint(hObject,eventdata)
@@ -800,3 +807,12 @@ function track_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 open_track_Callback(handles.open_track, eventdata, handles)
+
+function undo_Callback(hObject, eventdata, handles)
+% hObject    handle to Undo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+disp('hello');
+handles.masterData = handles.oldData;
+guidata(hObject,handles)
+showGraph_Callback(handles.showGraph,eventdata,handles);
