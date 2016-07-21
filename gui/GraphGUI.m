@@ -113,6 +113,7 @@ end
 % Find nearest vertex and edge
 [handles.vertexIdx,handles.vD] = nearestNeighbor(handles.vDT,handles.cp);
 [handles.edgeIdx,handles.eD] = nearestNeighbor(handles.eDT,handles.cp);
+
 % 
 % for n = 1:length(handles.assoc)
 %     if ismember(handles.cpIdx,handles.assoc{n})

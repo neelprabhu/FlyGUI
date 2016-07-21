@@ -1,6 +1,6 @@
 %% Run this file to start workflow.
 
-% @author Neel K. Prabhu, Virginia Cheng, Cheng Lu test
+% @author Neel K. Prabhu, Virginia Cheng, Cheng Lu
 
 function startup
 addpath(pwd);

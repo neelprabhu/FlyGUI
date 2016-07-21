@@ -1,4 +1,4 @@
-function f = origdisplayGraph(I, V, E, visible)
+function f = origdisplayGraph(V, E, visible)
 %DISPLAYGRAPH Displays graph with splines and vertices
 % 
 % INPUTS
@@ -14,9 +14,6 @@ function f = origdisplayGraph(I, V, E, visible)
 % @date 5/19/15
 
 % validate input
-if nargin < 4 || isempty(visible)
-    visible = 'on';
-end
 
 % get lengths
 N = length(V);
@@ -25,8 +22,8 @@ M = length(E);
 % setup figure
 f = figure('Visible', visible);
 hold on;
-imagesc(I);
-colormap gray
+% imagesc(I);
+% colormap gray
 
 % draw the vertices
 for ii=1:N
