@@ -19,8 +19,8 @@ for n = 1:numcells % For every cell in the frame
     centroidCell(n,:) = mean(polyCell{n});
 end
 
-handles.polygons{frame}  = polyCell;
-handles.centroids{frame} = centroidCell; 
+handles.polygons{frame,1}  = polyCell;
+handles.centroids{frame,1} = centroidCell; 
 
 % axis(gca)
 % plot(centroidCell(:,1),centroidCell(:,2),'go','MarkerFaceColor','b','MarkerSize',5)
