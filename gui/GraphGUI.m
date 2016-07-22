@@ -349,12 +349,16 @@ handles.oldData = handles.masterData;
 
 % Begin parameter extraction
 if handles.getStats
-    hold on
     handles.cellStats = getCellData(handles);
-    plot(handles.cp(1),handles.cp(2),'bo','MarkerEdgeColor',[0 1 1], ...
-        'MarkerFaceColor',[0 0.25 0.25],'MarkerSize',20)
+    axes(handles.axes1)
+    plot(handles.centroids{handles.f}(handles.cellStats.faceIndex,1), ...
+        handles.centroids{handles.f}(handles.cellStats.faceIndex,2),'bo', ...
+        'MarkerEdgeColor',[0 1 1], 'MarkerFaceColor',[0 0.25 0.25],'MarkerSize',15)
     handles.cellStats = getCellData(handles); % Get major statistics for every frame
-    handles.getStats = 0;
+    handles.getStats  = 0;
+    handles.clickDown = 0;
+    guidata(hObject,handles)
+    return;
 else
     if handles.vD < handles.eD
         hold on;
@@ -836,5 +840,4 @@ for frame = 1:size(handles.masterData,2)
 end
 
 handles.getStats = 1; % Activate boolean
-fprintf('Choose a cell!\n')
 guidata(hObject,handles)

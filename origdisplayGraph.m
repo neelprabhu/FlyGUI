@@ -13,11 +13,6 @@ function f = origdisplayGraph(V, E, visible)
 % @author Roger Zou
 % @date 5/19/15
 
-% validate input
-if nargin < 4 || isempty(visible)
-    visible = 'on';
-end
-
 % get lengths
 N = length(V);
 M = length(E);
