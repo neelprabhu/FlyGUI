@@ -22,7 +22,7 @@ stats     = gatherDataStats(size(ALL),data); % Gather stats from graph, all fram
 %% Get index over time
 
 % First find index of face corresponding to click
-cMatrix       = centroids{1,1};
-click         = repmat(click,size(cMatrix,1),1);
-sqrtSumSq     = sqrt(sum((click - cMatrix).^2,2));
-[~,cellStats.faceIndex]     = min(sqrtSumSq);
+cMatrix                 = centroids{1,1};
+click                   = repmat(click,size(cMatrix,1),1);
+sqrtSumSq               = sqrt(sum((click - cMatrix).^2,2));
+[~,cellStats.faceIndex] = min(sqrtSumSq);

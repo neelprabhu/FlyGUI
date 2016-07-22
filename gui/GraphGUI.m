@@ -351,10 +351,9 @@ handles.oldData = handles.masterData;
 if handles.getStats
     handles.cellStats = getCellData(handles);
     axes(handles.axes1)
-    plot(handles.centroids{handles.f}(handles.cellStats.faceIndex,1), ...
-        handles.centroids{handles.f}(handles.cellStats.faceIndex,2),'bo', ...
-        'MarkerEdgeColor',[0 1 1], 'MarkerFaceColor',[0 0.25 0.25],'MarkerSize',15)
-    handles.cellStats = getCellData(handles); % Get major statistics for every frame
+    b = fill(handles.polygons{handles.f}{handles.cellStats.faceIndex}(:,1), ...
+        handles.polygons{handles.f}{handles.cellStats.faceIndex}(:,2), ...
+        [0 0.5 0.5],'FaceAlpha',0.3,'EdgeAlpha',0);
     handles.getStats  = 0;
     handles.clickDown = 0;
     guidata(hObject,handles)
