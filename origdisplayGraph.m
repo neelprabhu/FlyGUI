@@ -57,6 +57,6 @@ for ii=1:M
 end
 
 axis equal;
-axis xy;
+axis ij;
 
 end

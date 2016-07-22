@@ -65,6 +65,7 @@ handles.clickDown = 0;
 handles.isAdd = 0; % Not adding element default
 handles.addVertex = 0; % Not adding element default
 handles.addEdge = 0;
+handles.getStats = 0;
 handles.prevVIdx = 1; handles.onV = false;
 handles.prevEIdx = 1; handles.onE = false;
 set(handles.frame,'String','1');
@@ -80,6 +81,7 @@ if ~isempty(ALL)
     handles.zStY = 20; handles.zStoY = size(handles.ALL(:,:,1),1)-19; % Zoom settings
     [V,E,A,F] = embryoInitGraph(handles.GT,20,false);
     handles.masterData = struct('VALL',{V},'EALL',{E},'ADJLIST',{A},'FACELIST',{F});
+    handles.oldData = handles.masterData;
     handles.f = 1; % default frame
     handles.vDT = setVVoronoi(handles);
     handles.eDT = setEVoronoi(handles);
@@ -89,7 +91,7 @@ end
 
 %% Code for tracking mouse movements and clicks
 
-set(gca,'Visible','off') %Turns off axes
+set(gca,'Visible','off') % Turns off axes
 set(gcf, 'WindowButtonDownFcn', @selectPoint);
 set(gcf, 'WindowButtonMotionFcn', @trackPoint);
 set(gcf, 'WindowButtonUpFcn', @stopTracking);
@@ -103,6 +105,7 @@ prelimPoint = get(gca,'CurrentPoint');
 prelimPoint = prelimPoint(1,1:2);
 handles.clickDown = 1;
 
+% Check if query is in boundaries, else return
 if inpolygon(prelimPoint(1),prelimPoint(2), ...
         [handles.zStX handles.zStoX],[handles.zStY handles.zStoY])
     handles.cp = prelimPoint;
@@ -114,6 +117,7 @@ end
 [handles.vertexIdx,handles.vD] = nearestNeighbor(handles.vDT,handles.cp);
 [handles.edgeIdx,handles.eD] = nearestNeighbor(handles.eDT,handles.cp);
 
+<<<<<<< HEAD
 % 
 % for n = 1:length(handles.assoc)
 %     if ismember(handles.cpIdx,handles.assoc{n})
@@ -121,10 +125,12 @@ end
 %         break
 %     end
 % end
+=======
+>>>>>>> Neel
 
 % Adding vertex
 if handles.addVertex
-    
+    handles.oldData = handles.masterData;
     eI = handles.edgeIdx;
     tmpS = masterData(handles.f).EALL{eI};
     tmpCurve =  tmpS.curve;
@@ -136,7 +142,7 @@ if handles.addVertex
     
     next = size(masterData(handles.f).VALL,1);
     masterData(handles.f).VALL{next+1} = handles.cp';
-    masterData(handles.f).ADJLIST{next+1} = [];
+    masterData(handles.f).ADJLIST{next+1} = []; % Initialize empty adjacency
     
     handles.vIndex = next+1;
     
@@ -279,7 +285,7 @@ if handles.addVertex
     return;
 end
 
-if handles.addEdge == 1    
+if handles.addEdge == 1  
     handles.E1 = handles.vertexIdx;
     handles.addEdge = 2;
     guidata(hObject,handles)
@@ -287,6 +293,7 @@ if handles.addEdge == 1
 end
 
 if handles.addEdge == 2
+    handles.oldData = handles.masterData;
     handles.E2 = handles.vertexIdx;
     handles.addEdge = 1;
     
@@ -348,25 +355,40 @@ eprevProps = handles.eH{handles.prevEIdx};
 cProps = handles.cpH{handles.edgeIdx};
 cprevProps = handles.cpH{handles.prevEIdx};
 
-if handles.vD < handles.eD
-    hold on;
-    set(vprevProps,'MarkerEdgeColor','r','MarkerFaceColor','r')
-    set(eprevProps,'Color','y')
-    set(cprevProps,'Visible','off')
-    set(vProps,'MarkerEdgeColor','g','MarkerFaceColor','g')
-    handles.prevVIdx = handles.vertexIdx; % Sets previous vertex equal to current
-    handles.onE = false; handles.onV = true;
+handles.oldData = handles.masterData;
+
+% Begin parameter extraction
+if handles.getStats
+    hold on
+    handles.cellStats = getCellData(handles);
+    plot(handles.cp(1),handles.cp(2),'bo','MarkerEdgeColor',[0 1 1], ...
+        'MarkerFaceColor',[0 0.25 0.25],'MarkerSize',20)
+    handles.cellStats = getCellData(handles); % Get major statistics for every frame
+    handles.getStats = 0;
 else
-    hold on;
-    set(eprevProps,'Color','y')
-    set(cprevProps,'Visible','off')
-    set(vprevProps,'MarkerEdgeColor','r','MarkerFaceColor','r')
-    set(eProps,'Color','g')
-    set(cProps,'Visible','on')
-    handles.prevEIdx = handles.edgeIdx;
-    handles.onE = true; handles.onV = false;
+    if handles.vD < handles.eD
+        hold on;
+        set(vprevProps,'MarkerEdgeColor','r','MarkerFaceColor','r')
+        set(eprevProps,'Color','y')
+        set(cprevProps,'Visible','off')
+        set(vProps,'MarkerEdgeColor','g','MarkerFaceColor','g')
+        handles.prevVIdx = handles.vertexIdx; % Sets previous vertex equal to current
+        handles.onE = false; handles.onV = true;
+        guidata(hObject,handles)
+        return;
+    else
+        hold on;
+        set(eprevProps,'Color','y')
+        set(cprevProps,'Visible','off')
+        set(vprevProps,'MarkerEdgeColor','r','MarkerFaceColor','r')
+        set(eProps,'Color','g')
+        set(cProps,'Visible','on')
+        handles.prevEIdx = handles.edgeIdx;
+        handles.onE = true; handles.onV = false;
+        guidata(hObject,handles)
+        return;
+    end
 end
-guidata(hObject,handles)
 
 function trackPoint(hObject,eventdata)
 handles = guidata(hObject);    
@@ -564,7 +586,7 @@ if handles.onV
         else
             vert = adj(1,:);
             edge = adj(2,:);
-            handles.masterData(handles.f).ADJLIST{index} = [NaN;NaN]; % Get rid of deleted vertex ADJLIST
+            handles.masterData(handles.f).ADJLIST{index} = []; % Get rid of deleted vertex ADJLIST
             for n = 1:numel(edge)
                 handles.masterData(handles.f).EALL{edge(n)} = []; % Get rid of incident
                 set(handles.eH{edge(n)},'Visible','off') % Edges visible off
@@ -632,9 +654,12 @@ handles.f = str2double(get(hObject,'String'));
 if size(handles.masterData,2) >= handles.f
     handles.vDT = setVVoronoi(handles);
     handles.eDT = setEVoronoi(handles);
+    guidata(hObject,handles)
+    showGraph_Callback(handles.showGraph,eventdata,handles)
+else
+    guidata(hObject,handles)
+    showRaw_Callback(handles.showRaw,eventdata,handles)
 end
-guidata(hObject,handles)
-showRaw_Callback(hObject,eventdata,handles)
 
 function frame_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to frame (see GCBO)
@@ -677,7 +702,7 @@ dlg_title = 'Tracking Options'; num_lines = 1; defaultans = {'1','2'};
 handles = guidata(hObject);
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 sFrame = str2double(answer(1)); eFrame = str2double(answer(2));
-[handles.masterData] = graphTrack(handles.ALL, ...
+[handles.masterData] = customMembraneTrack(handles.ALL, ...
     handles.options, handles.masterData,sFrame,eFrame);
 data = handles.masterData;
 save('over_segment_fixed.mat','data')
@@ -801,3 +826,25 @@ function track_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 open_track_Callback(handles.open_track, eventdata, handles)
+
+function undo_Callback(hObject, eventdata, handles)
+% hObject    handle to Undo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.masterData = handles.oldData;
+guidata(hObject,handles)
+showGraph_Callback(handles.showGraph,eventdata,handles);
+
+function getParameters_Callback(hObject, eventdata, handles)
+% hObject    handle to getParameters (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(hObject);
+
+for frame = 1:size(handles.masterData,2)
+    handles = makeCellPolygons(handles,frame); % Get polygons and centroids for every cell, every frame
+end
+
+handles.getStats = 1; % Activate boolean
+fprintf('Choose a cell!\n')
+guidata(hObject,handles)
