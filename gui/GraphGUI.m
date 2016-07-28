@@ -348,39 +348,38 @@ cprevProps = handles.cpH{handles.prevEIdx};
 handles.oldData = handles.masterData;
 
 % Begin parameter extraction
-if handles.getStats
-    handles.cellStats = getCellData(handles);
-    axes(handles.axes1)
-    b = fill(handles.polygons{handles.f}{handles.cellStats.faceIndex}(:,1), ...
-        handles.polygons{handles.f}{handles.cellStats.faceIndex}(:,2), ...
-        [0 0.5 0.5],'FaceAlpha',0.3,'EdgeAlpha',0);
-    handles.getStats  = 0;
-    handles.clickDown = 0;
+% if handles.getStats
+%     handles.cellStats = getCellData(handles);
+%     axes(handles.axes1)
+%     %b = fill(handles.polygons{handles.f}{handles.cellStats.faceIndex}(:,1), ...
+%      %   handles.polygons{handles.f}{handles.cellStats.faceIndex}(:,2), ...
+%       %  [0 0.5 0.5],'FaceAlpha',0.3,'EdgeAlpha',0);
+%     handles.getStats  = 0;
+%     handles.clickDown = 0;
+%     guidata(hObject,handles)
+%     return;
+
+if handles.vD < handles.eD
+    hold on;
+    set(vprevProps,'MarkerEdgeColor','r','MarkerFaceColor','r')
+    set(eprevProps,'Color','y')
+    set(cprevProps,'Visible','off')
+    set(vProps,'MarkerEdgeColor','g','MarkerFaceColor','g')
+    handles.prevVIdx = handles.vertexIdx; % Sets previous vertex equal to current
+    handles.onE = false; handles.onV = true;
     guidata(hObject,handles)
     return;
 else
-    if handles.vD < handles.eD
-        hold on;
-        set(vprevProps,'MarkerEdgeColor','r','MarkerFaceColor','r')
-        set(eprevProps,'Color','y')
-        set(cprevProps,'Visible','off')
-        set(vProps,'MarkerEdgeColor','g','MarkerFaceColor','g')
-        handles.prevVIdx = handles.vertexIdx; % Sets previous vertex equal to current
-        handles.onE = false; handles.onV = true;
-        guidata(hObject,handles)
-        return;
-    else
-        hold on;
-        set(eprevProps,'Color','y')
-        set(cprevProps,'Visible','off')
-        set(vprevProps,'MarkerEdgeColor','r','MarkerFaceColor','r')
-        set(eProps,'Color','g')
-        set(cProps,'Visible','on')
-        handles.prevEIdx = handles.edgeIdx;
-        handles.onE = true; handles.onV = false;
-        guidata(hObject,handles)
-        return;
-    end
+    hold on;
+    set(eprevProps,'Color','y')
+    set(cprevProps,'Visible','off')
+    set(vprevProps,'MarkerEdgeColor','r','MarkerFaceColor','r')
+    set(eProps,'Color','g')
+    set(cProps,'Visible','on')
+    handles.prevEIdx = handles.edgeIdx;
+    handles.onE = true; handles.onV = false;
+    guidata(hObject,handles)
+    return;
 end
 
 function trackPoint(hObject,eventdata)
@@ -698,7 +697,7 @@ sFrame = str2double(answer(1)); eFrame = str2double(answer(2));
 [handles.masterData] = customMembraneTrack(handles.ALL, ...
     handles.options, handles.masterData,sFrame,eFrame);
 data = handles.masterData;
-save('over_segment_fixed.mat','data')
+save('full_seq','data')
 guidata(hObject,handles)
 
 % --- Executes on button press in add_edge.
@@ -833,10 +832,10 @@ function getParameters_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(hObject);
-
 for frame = 1:size(handles.masterData,2)
     handles = makeCellPolygons(handles,frame); % Get polygons and centroids for every cell, every frame
 end
-
-handles.getStats = 1; % Activate boolean
+cellStats = getCellData(handles);
+save('cellStats','cellStats')
+exportData('cellStats', '.csv')
 guidata(hObject,handles)
