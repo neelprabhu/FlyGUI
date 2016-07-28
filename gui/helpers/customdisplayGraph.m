@@ -56,7 +56,7 @@ for ii=1:M
     if ~isempty(si)
         eH{ii} = line(si.curve(1,:), si.curve(2,:), 'Color', 'y', 'LineWidth', 3);
         cpH{ii} = plot(si.control(1, :), si.control(2, :), 'b.-', ...
-            'MarkerSize', 20, 'Visible', 'on');
+            'MarkerSize', 20, 'Visible', 'off');
     end
     
 end
