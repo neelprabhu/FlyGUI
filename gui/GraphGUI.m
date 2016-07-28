@@ -82,6 +82,7 @@ if ~isempty(ALL)
     [V,E,A,F] = embryoInitGraph(handles.GT,20,false);
     handles.masterData = struct('VALL',{V},'EALL',{E},'ADJLIST',{A},'FACELIST',{F});
     handles.oldData = handles.masterData;
+    handles.isChanged = 0;
     handles.f = 1; % default frame
     handles.vDT = setVVoronoi(handles);
     handles.eDT = setEVoronoi(handles);
