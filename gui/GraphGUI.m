@@ -386,7 +386,7 @@ end
 
 function trackPoint(hObject,eventdata)
 handles = guidata(hObject);    
-if handles.vertexIdx ~= -1 && handles.vD < handles.eD
+if handles.vertexIdx ~= -1 && handles.vD < handles.eD && handles.clickDown == 1
     masterData = handles.masterData; %Gets the data struct
     handles.isChanged = 1;
     newcp = get(gca,'CurrentPoint');
@@ -464,7 +464,6 @@ if handles.isChanged == 0
     handles.oldData(1) = [];
 end
 handles.isChanged = 0;
-handles.clickDown = 0;
 if handles.vertexIdx ~= -1
     handles.vertexIdx = -1;
     handles.vDT = setVVoronoi(handles);
