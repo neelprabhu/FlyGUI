@@ -836,6 +836,10 @@ handles.masterData = handles.oldData(1);
 if(length(handles.oldData) >= 2)
     handles.oldData(1) = [];
 end
+handles.edgeIdx = 1;
+handles.vertexIdx = 1;
+handles.prevVIdx = 1;
+handles.prevEIdx = 1;
 guidata(hObject,handles)
 showGraph_Callback(handles.showGraph,eventdata,handles);
 
