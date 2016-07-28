@@ -385,6 +385,7 @@ function trackPoint(hObject,eventdata)
 handles = guidata(hObject);    
 if handles.vertexIdx ~= -1 && handles.vD < handles.eD
     masterData = handles.masterData; %Gets the data struct
+    handles.isChanged = 1;
     newcp = get(gca,'CurrentPoint');
     newcp = newcp(1, 1:2)';
     masterData(1).VALL{handles.vertexIdx} = newcp; % Move point here.
