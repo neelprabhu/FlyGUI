@@ -100,6 +100,7 @@ set(gcf, 'KeyPressFcn', @buttonPress);
 function selectPoint(hObject,eventdata) % When mouse is clicked
     
 handles = guidata(hObject);
+handles.oldData = [handles.masterData; handles.oldData];
 masterData = handles.masterData;
 prelimPoint = get(gca,'CurrentPoint');
 prelimPoint = prelimPoint(1,1:2);
@@ -120,7 +121,7 @@ end
 
 % Adding vertex
 if handles.addVertex
-    handles.oldData = handles.masterData;
+    handles.oldData = [handles.masterData; handles.oldData];
     eI = handles.edgeIdx;
     tmpS = masterData(handles.f).EALL{eI};
     tmpCurve =  tmpS.curve;
@@ -283,7 +284,7 @@ if handles.addEdge == 1
 end
 
 if handles.addEdge == 2
-    handles.oldData = handles.masterData;
+    handles.oldData = [handles.masterData; handles.oldData];
     handles.E2 = handles.vertexIdx;
     handles.addEdge = 1;
     
@@ -344,8 +345,6 @@ eProps = handles.eH{handles.edgeIdx};
 eprevProps = handles.eH{handles.prevEIdx};
 cProps = handles.cpH{handles.edgeIdx};
 cprevProps = handles.cpH{handles.prevEIdx};
-
-handles.oldData = handles.masterData;
 
 % Begin parameter extraction
 % if handles.getStats
@@ -456,6 +455,10 @@ end
 
 function stopTracking(hObject,eventdata)
 handles = guidata(hObject);
+if handles.isChanged == 0
+    handles.oldData(1) = [];
+end
+handles.isChanged = 0;
 handles.clickDown = 0;
 if handles.vertexIdx ~= -1
     handles.vertexIdx = -1;
@@ -481,6 +484,7 @@ end
 
 function handles = deleteVE(handles)
 if handles.onV
+    handles.oldData = [handles.masterData; handles.oldData];
     index = handles.vIndex;
     set(handles.vH{index},'Visible','off')
     
@@ -591,6 +595,7 @@ if handles.onV
     end
 end
 if handles.onE
+    handles.oldData = [handles.masterData; handles.oldData];
     index = handles.eIndex;
     ctrlMatrix = handles.masterData(handles.f).EALL{index}.control;
     vIndex1 = nearestNeighbor(handles.vDT,ctrlMatrix(:,1)');
@@ -823,7 +828,10 @@ function undo_Callback(hObject, eventdata, handles)
 % hObject    handle to Undo (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.masterData = handles.oldData;
+handles.masterData = handles.oldData(1);
+if(length(handles.oldData) >= 2)
+    handles.oldData(1) = [];
+end
 guidata(hObject,handles)
 showGraph_Callback(handles.showGraph,eventdata,handles);
 
