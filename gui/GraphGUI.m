@@ -122,6 +122,7 @@ end
 % Adding vertex
 if handles.addVertex
     handles.oldData = [handles.masterData; handles.oldData];
+    handles.isChanged = 1;
     eI = handles.edgeIdx;
     tmpS = masterData(handles.f).EALL{eI};
     tmpCurve =  tmpS.curve;
@@ -285,6 +286,7 @@ end
 
 if handles.addEdge == 2
     handles.oldData = [handles.masterData; handles.oldData];
+    handles.isChanged = 1;
     handles.E2 = handles.vertexIdx;
     handles.addEdge = 1;
     
@@ -425,6 +427,7 @@ if handles.vertexIdx ~= -1 && handles.vD < handles.eD
 end
 
 if handles.onE && handles.clickDown == 1
+    handles.isChanged = 1;
     masterData = handles.masterData; %Gets the data struct
     newcp = get(gca,'CurrentPoint');
     newcp = newcp(1, 1:2)';
