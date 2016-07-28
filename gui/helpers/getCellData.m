@@ -8,8 +8,10 @@ function cellStats = getCellData(handles)
 % centroids: Centroids of cells to get data from.
 %
 % OUTPUTS
-% cellArea: Areas
-% cellPerimeter: Perimeters
+% cellStats: An (n x 1) cell array containing tables with biological data
+% about tracked cells.
+%
+% @author Neel K. Prabhu
 
 %% Get stats
 data      = handles.masterData;

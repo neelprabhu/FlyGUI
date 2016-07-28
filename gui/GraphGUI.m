@@ -65,7 +65,6 @@ handles.clickDown = 0;
 handles.isAdd = 0; % Not adding element default
 handles.addVertex = 0; % Not adding element default
 handles.addEdge = 0;
-handles.isChanged = 0;
 handles.getStats = 0;
 handles.prevVIdx = 1; handles.onV = false;
 handles.prevEIdx = 1; handles.onE = false;
@@ -101,8 +100,6 @@ set(gcf, 'KeyPressFcn', @buttonPress);
 function selectPoint(hObject,eventdata) % When mouse is clicked
     
 handles = guidata(hObject);
-handles.oldData = [handles.masterData; handles.oldData];
-
 masterData = handles.masterData;
 prelimPoint = get(gca,'CurrentPoint');
 prelimPoint = prelimPoint(1,1:2);
@@ -123,8 +120,7 @@ end
 
 % Adding vertex
 if handles.addVertex
-    %%addOLd
-    handles.oldData = [handles.masterData; handles.oldData];
+    handles.oldData = handles.masterData;
     eI = handles.edgeIdx;
     tmpS = masterData(handles.f).EALL{eI};
     tmpCurve =  tmpS.curve;
@@ -287,8 +283,7 @@ if handles.addEdge == 1
 end
 
 if handles.addEdge == 2
-    %addOLD
-    handles.oldData = [handles.masterData; handles.oldData];
+    handles.oldData = handles.masterData;
     handles.E2 = handles.vertexIdx;
     handles.addEdge = 1;
     
@@ -372,6 +367,8 @@ if handles.vD < handles.eD
     set(vProps,'MarkerEdgeColor','g','MarkerFaceColor','g')
     handles.prevVIdx = handles.vertexIdx; % Sets previous vertex equal to current
     handles.onE = false; handles.onV = true;
+    guidata(hObject,handles)
+    return;
 else
     hold on;
     set(eprevProps,'Color','y')
@@ -382,12 +379,12 @@ else
     handles.prevEIdx = handles.edgeIdx;
     handles.onE = true; handles.onV = false;
     guidata(hObject,handles)
+    return;
 end
 
 function trackPoint(hObject,eventdata)
 handles = guidata(hObject);    
 if handles.vertexIdx ~= -1 && handles.vD < handles.eD
-    handles.isChanged = 1;
     masterData = handles.masterData; %Gets the data struct
     newcp = get(gca,'CurrentPoint');
     newcp = newcp(1, 1:2)';
@@ -428,7 +425,6 @@ if handles.vertexIdx ~= -1 && handles.vD < handles.eD
 end
 
 if handles.onE && handles.clickDown == 1
-    handles.isChanged = 1;
     masterData = handles.masterData; %Gets the data struct
     newcp = get(gca,'CurrentPoint');
     newcp = newcp(1, 1:2)';
@@ -460,10 +456,6 @@ end
 
 function stopTracking(hObject,eventdata)
 handles = guidata(hObject);
-if handles.isChanged == 0
-    handles.oldData(1) = [];
-end
-handles.isChanged = 0;
 handles.clickDown = 0;
 if handles.vertexIdx ~= -1
     handles.vertexIdx = -1;
@@ -489,7 +481,6 @@ end
 
 function handles = deleteVE(handles)
 if handles.onV
-    handles.oldData = [handles.masterData; handles.oldData];
     index = handles.vIndex;
     set(handles.vH{index},'Visible','off')
     
@@ -600,7 +591,6 @@ if handles.onV
     end
 end
 if handles.onE
-    handles.oldData = [handles.masterData; handles.oldData];
     index = handles.eIndex;
     ctrlMatrix = handles.masterData(handles.f).EALL{index}.control;
     vIndex1 = nearestNeighbor(handles.vDT,ctrlMatrix(:,1)');
@@ -833,10 +823,7 @@ function undo_Callback(hObject, eventdata, handles)
 % hObject    handle to Undo (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.masterData = handles.oldData(1);
-if(length(handles.oldData) >= 2)
-    handles.oldData(1) = [];
-end
+handles.masterData = handles.oldData;
 guidata(hObject,handles)
 showGraph_Callback(handles.showGraph,eventdata,handles);
 

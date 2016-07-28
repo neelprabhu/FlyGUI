@@ -1,7 +1,13 @@
-%A = unique(data(:,1));
-A = [9 16 4 11 5]; % Largest area, smallest area/perimeter, largest perimeter, pair of 4
+% QUICKGRAPHER A simple script that takes excel data on cell area and
+% perimeter and graphs them as a function of frame.
+%
+% data: A matrix with first column cell indices, second column areas,
+% third column perimeters. 
+
+
+A = [9 16 4 11 5]; % Cells with largest area, smallest area/perimeter, largest perimeter, etc.
 areas  = data(:,2);
-perims = data(:,11);
+perims = data(:,3);
 
 figure(1)
 counter = 1;

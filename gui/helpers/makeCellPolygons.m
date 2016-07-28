@@ -1,5 +1,15 @@
 function handles = makeCellPolygons(handles,frame)
-
+% MAKECELLPOLYGONS Takes vertex and edge samplings from every complete cell
+% in FACELIST and returns cell arrays with polygon and centroid information
+% for each face.
+%
+% INPUTS
+% handles: Master structure from GUI containing all information.
+% frame: Current frame to get correct facelist.
+%
+% OUTPUTS
+% handles: Updated master structure with polygon and centroid information.
+%
 % @author Neel K. Prabhu
 
 data         = handles.masterData;
