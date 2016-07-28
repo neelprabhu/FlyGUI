@@ -7,7 +7,7 @@ addpath(pwd);
 addpath(genpath(fullfile(pwd, 'gui')));
 % Create figure
 h.f = figure('units','pixels','position',[500,500,200,150],...
-             'toolbar','none','menu','none','name','Data+ GUI','NumberTitle','off');
+             'toolbar','none','menu','none','name','GraphGUI','NumberTitle','off');
 % Create yes/no checkboxes
 h.c(1) = uicontrol('style','checkbox','units','pixels',...
                 'position',[35,100,200,20],'string','First-Time Sequence');

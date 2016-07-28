@@ -1,5 +1,6 @@
 function [data] = customMembraneTrack(ALL, options, preData,sFrame,eFrame)
-%MEMBRANETRACK Track graph structure in image stream.
+% CUSTOMMEMBRANETRACK Track graph structure in image stream using a custom
+% first-frame graph specified in GraphGUI.
 %
 % INPUTS
 % ALL: 3D image stack.

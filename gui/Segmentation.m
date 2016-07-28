@@ -53,6 +53,7 @@ function Segmentation_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for Segmentation
 handles.output = hObject;
+warning off;
 
 % Update handles structure
 guidata(hObject, handles);

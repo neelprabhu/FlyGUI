@@ -42,6 +42,7 @@ function GraphGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for GraphGUI
 handles.output = hObject;
+warning off;
 
 % Lots of parameters, some unnecessary...
 setup;
@@ -115,8 +116,7 @@ end
 
 % Find nearest vertex and edge
 [handles.vertexIdx,handles.vD] = nearestNeighbor(handles.vDT,handles.cp);
-[handles.edgeIdx,handles.eD] = nearestNeighbor(handles.eDT,handles.cp);
-
+[handles.edgeIdx,handles.eD]   = nearestNeighbor(handles.eDT,handles.cp);
 
 % Adding vertex
 if handles.addVertex
@@ -124,7 +124,7 @@ if handles.addVertex
     eI = handles.edgeIdx;
     tmpS = masterData(handles.f).EALL{eI};
     tmpCurve =  tmpS.curve;
-    eDis = min    (sqrt((handles.cp(1)-tmpCurve(1,:)).^2 + (handles.cp(2)-tmpCurve(2,:)).^2         ));
+    eDis = min(sqrt((handles.cp(1)-tmpCurve(1,:)).^2 + (handles.cp(2)-tmpCurve(2,:)).^2));
     VonE = false;
     if eDis<2
         VonE  = true;
@@ -698,7 +698,19 @@ sFrame = str2double(answer(1)); eFrame = str2double(answer(2));
     handles.options, handles.masterData,sFrame,eFrame);
 data = handles.masterData;
 save('full_seq','data')
-guidata(hObject,handles)
+
+% To make movie, uncomment, change file name in fnameall
+% Movie = [];
+% for ii=1:size(handles.masterData,1)
+%     fig = customdisplayGraph(handles.ALL(:,:,ii), data(ii).VALL, data(ii).EALL, 'on');    
+%     Movie = [Movie, immovie(print(fig, '-RGBImage'));];
+%     close(fig);
+% end
+% fnameall = 'new_movie.avi';
+% writerObj = VideoWriter(fnameall);
+% writerObj.FrameRate = 2; writerObj.Quality = 100;
+% open(writerObj); writeVideo(writerObj, Movie); close(writerObj);
+% guidata(hObject,handles)
 
 % --- Executes on button press in add_edge.
 function add_edge_Callback(hObject, eventdata, handles)
