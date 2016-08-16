@@ -23,8 +23,12 @@ centroidCell = zeros(numcells,2);
 for n = 1:numcells % For every cell in the frame
     faceMatrix = face{n};
     for m = 1:size(faceMatrix,2) % For every pairing per cell
-        polyCell{n} = [polyCell{n};vertex{faceMatrix(1,m)}'; ...
-            edge{faceMatrix(2,m)}.curve(:,ceil(end/2)-1:ceil(end/2)+1)'];
+        if isempty(edge{faceMatrix(2,m)})
+            continue;
+        else
+            polyCell{n} = [polyCell{n};vertex{faceMatrix(1,m)}'; ...
+                edge{faceMatrix(2,m)}.curve(:,ceil(end/2)-1:ceil(end/2)+1)'];
+        end
     end
     centroidCell(n,:) = mean(polyCell{n});
 end

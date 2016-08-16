@@ -1,4 +1,4 @@
-function [data] = customMembraneTrack(ALL, options, preData,sFrame,eFrame)
+function [data] = customMembraneTrack(ALL, options, preData,sFrame,eFrame,handles)
 % CUSTOMMEMBRANETRACK Track graph structure in image stream using a custom
 % first-frame graph specified in GraphGUI.
 %
@@ -18,7 +18,7 @@ l = 17; w = 25; alpha = 1; interval = 0; spacing = 20;
 verboseE = false; verboseG = false; siftflow = true; parallel = false;
 edgetype = 'A';
 fname = ['tmp_', datestr(clock)];
-if nargin==nargin('membraneTrack') && ~isempty(options)
+if nargin==nargin('customMembraneTrack') && ~isempty(options)
     if any(strcmp('l',fieldnames(options)))
         l = options.l;
     end
@@ -118,10 +118,11 @@ for ii=(sFrame+1):eFrame
 	[V, E, ~] = optIterGraph(structA, structB, structC, structD, optOptions);
     VALL{ii} = V;
     EALL{ii} = E;
-
-	toc
     
+    dataSave = struct('VALL',VALL,'EALL',EALL,'ADJLIST',ADJLIST,'FACELIST',FACELIST);
+    save(strcat(handles.fileName,'Backup'),'dataSave') %Saves some data to WD after every frame
+    
+	toc
 end
-
-data = struct('VALL',VALL,'EALL',EALL,'ADJLIST',ADJLIST,'FACELIST',FACELIST); % output everything.
+data = struct('VALL',VALL,'EALL',EALL,'ADJLIST',ADJLIST,'FACELIST',FACELIST); % master output after tracking
 end

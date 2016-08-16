@@ -37,7 +37,6 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-
 function GraphGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for GraphGUI
@@ -66,6 +65,7 @@ handles.isAdd = 0; % Not adding element default
 handles.addVertex = 0; % Not adding element default
 handles.addEdge = 0;
 handles.getStats = 0;
+handles.isChanged = 0;
 handles.prevVIdx = 1; handles.onV = false;
 handles.prevEIdx = 1; handles.onE = false;
 set(handles.frame,'String','1');
@@ -74,18 +74,8 @@ guidata(hObject,handles)
 global ALL;
 if ~isempty(ALL)
     handles = guidata(hObject);
-    GT = imread('myGT.png');
-    handles.GT = padarray(GT, [20,20]);
-    handles.ALL = padarray(ALL, [20,20,0]);
-    handles.zStX = 20; handles.zStoX = size(handles.ALL(:,:,1),2)-19;
-    handles.zStY = 20; handles.zStoY = size(handles.ALL(:,:,1),1)-19; % Zoom settings
-    [V,E,A,F] = embryoInitGraph(handles.GT,20,false);
-    handles.masterData = struct('VALL',{V},'EALL',{E},'ADJLIST',{A},'FACELIST',{F});
-    handles.oldData = handles.masterData;
-    handles.f = 1; % default frame
-    handles.vDT = setVVoronoi(handles);
-    handles.eDT = setEVoronoi(handles);
-    guidata(hObject,handles)
+    newhandles = initialize(handles);
+    guidata(hObject,newhandles)
     showGraph_Callback(handles.showGraph,eventdata,handles);
 end
 
@@ -100,7 +90,6 @@ set(gcf, 'KeyPressFcn', @buttonPress);
 function selectPoint(hObject,eventdata) % When mouse is clicked
     
 handles = guidata(hObject);
-handles.oldData = [handles.masterData; handles.oldData];
 masterData = handles.masterData;
 prelimPoint = get(gca,'CurrentPoint');
 prelimPoint = prelimPoint(1,1:2);
@@ -117,163 +106,12 @@ end
 % Find nearest vertex and edge
 [handles.vertexIdx,handles.vD] = nearestNeighbor(handles.vDT,handles.cp);
 [handles.edgeIdx,handles.eD] = nearestNeighbor(handles.eDT,handles.cp);
-
+guidata(hObject,handles)
 
 % Adding vertex
 if handles.addVertex
-    handles.oldData = [handles.masterData; handles.oldData];
-    handles.isChanged = 1;
-    eI = handles.edgeIdx;
-    tmpS = masterData(handles.f).EALL{eI};
-    tmpCurve =  tmpS.curve;
-    eDis = min    (sqrt((handles.cp(1)-tmpCurve(1,:)).^2 + (handles.cp(2)-tmpCurve(2,:)).^2         ));
-    VonE = false;
-    if eDis<2
-        VonE  = true;
-    end
-    
-    next = size(masterData(handles.f).VALL,1);
-    masterData(handles.f).VALL{next+1} = handles.cp';
-    masterData(handles.f).ADJLIST{next+1} = []; % Initialize empty adjacency
-    
-    handles.vIndex = next+1;
-    
-    if VonE
-        tmpdis = realmax;
-        
-        [r,c] = size(tmpS.control);
-        for k = 1:c
-            P2P = sqrt((handles.cp(1)-tmpS.control(1,k))^2+(handles.cp(2)-tmpS.control(2,k))^2);
-            if P2P<tmpdis
-                tmpdis = P2P;
-                numC = k;
-            end
-        end
-        
-        if numC~=1
-            preDist = sqrt((handles.cp(1)-tmpS.control(1,numC-1))^2+(handles.cp(2)-tmpS.control(2,numC-1))^2);
-        else
-            preDist = realmax;
-        end
-        
-        if numC~= length(tmpS.control)
-            nextDist = sqrt((handles.cp(1)-tmpS.control(1,numC+1))^2+(handles.cp(2)-tmpS.control(2,numC+1))^2);
-        else
-            nextDist = realmax;
-        end
-        
-        if preDist <nextDist
-            numC2 = numC-1;
-        else
-            numC2 = numC+1;
-        end
-        
-        if numC<numC2
-            sNum = numC; lNum = numC2;
-        else
-            lNum = numC; sNum = numC2;
-        end
-        
-        order = 3;
-        open = true;
-        n = 101;
-        makeNeedles = false;
-        
-        k1 = sNum-1; % Number of interior control points
-        nctr1 = k1 + 2; % Number of control points
-        mult1 = ones(1, nctr1 - 3);
-        
-        control1 = [];
-        for k=1:sNum
-            control1 = [control1, tmpS.control(:,k)];
-        end
-        
-        if ((sNum==1) && (lNum==2))
-            k1 = 1; % Number of interior control points
-            nctr1 = k1 + 2; % Number of control points
-            mult1 = ones(1, nctr1 - 3);
-            control1 = [control1, (tmpS.control(:,1)+handles.cp')./2];  
-        end
-        
-        control1 = [control1,handles.cp'];
-        
-        s1 = splineMake(control1, order, mult1, open, n, makeNeedles);
-        
-        k2 = length(tmpS.control)-sNum-1; % Number of interior control points
-        nctr2 = k2 + 2; % Number of control points
-        mult2 = ones(1, nctr2 - 3);
-        
-        control2 = [];
-        control2 = handles.cp';
-        
-        ttnum = length(tmpS.control);
-        if ((lNum==ttnum) && (sNum==ttnum-1))
-            
-            k2 = 1; % Number of interior control points
-            nctr2 = k2 + 2; % Number of control points
-            mult2 = ones(1, nctr2 - 3);
-            control2 = [control2, (tmpS.control(:,ttnum)+handles.cp')./2];
-        end
-        
-        for k = sNum+1:c
-            control2 = [control2,tmpS.control(:,k)];
-        end
-        s2 = splineMake(control2, order, mult2, open, n, makeNeedles);%%Right now have to have at lease one ctrl point to generate a spline
-        
-        %delete original spline
-        masterData(handles.f).EALL{eI} = [];
-        
-        %put the two new splines into EALL
-        next = size(masterData(handles.f).EALL,1);
-        masterData(handles.f).EALL{next+1} = s1;
-        masterData(handles.f).EALL{next+2} = s2;
-        indEE1 = next + 1;
-        indEE2 = next +2;
-
-        %index of the first and the second point
-        myAdj= masterData(handles.f).ADJLIST;
-        
-        [ind1,nothing] = nearestNeighbor(handles.vDT,(tmpS.control(:,1))');
-        [ind2,nothing] = nearestNeighbor(handles.vDT,(tmpS.control(:,length(tmpS.control)))');%%%%%% might be wrong
-
-        %refresh 1st point's adjlist
-        tmpVonE = [length(masterData(handles.f).VALL);indEE1];
-
-        for k = 1: length(myAdj{ind1}(1,:))
-            
-            if myAdj{ind1}(2,k) == eI
-                masterData(handles.f).ADJLIST{ind1}(:,k) = tmpVonE;%%the erro refers to spline.control
-                break;
-            end
-            
-        end
-        
-        %refresh 2nd point's adjlist
-        tmpVonE = [length(masterData(handles.f).VALL);indEE2];
-        
-        for k = 1:length(myAdj{ind2}(1,:))
-            if myAdj{ind2}(2,k) ==eI
-                masterData(handles.f).ADJLIST{ind2}(:,k)=tmpVonE;
-                break
-            end 
-        end
-        % refresh new point's adjlist
-        masterData(handles.f).ADJLIST{size(masterData(handles.f).VALL,1)} = [ind1 ind2;indEE1 indEE2];
-        
-    end
-    
-    hold on;
-    xlim = get(gca,'XLim');
-    ylim = get(gca,'YLim');
-    [handles.vH, handles.eH, handles.cpH] = ...
-        customdisplayGraph(handles.ALL(:,:,handles.f), ...
-        masterData(handles.f).VALL, masterData(handles.f).EALL, 'on');
-    set(gca, 'XLim', xlim);
-    set(gca, 'YLim', ylim);
-    handles.masterData = masterData;
-    handles.vDT = setVVoronoi(handles);
-    handles.eDT = setEVoronoi(handles);
-    guidata(hObject,handles)
+    newhandles = vertAdd(handles);
+    guidata(hObject,newhandles)
     return;
 end
 
@@ -285,194 +123,23 @@ if handles.addEdge == 1
 end
 
 if handles.addEdge == 2
-    handles.oldData = [handles.masterData; handles.oldData];
-    handles.isChanged = 1;
-    handles.E2 = handles.vertexIdx;
-    handles.addEdge = 1;
-    
-    masterData = handles.masterData;
-    
-    k = 2; % Number of interior control points
-    nctr = k + 2; % Number of control points
-    mult = ones(1, nctr - 3);
-    
-    control = [masterData(handles.f).VALL{handles.E1}, ...
-        masterData(handles.f).VALL{handles.E1}+(masterData(handles.f).VALL{handles.E2}-masterData(handles.f).VALL{handles.E1}).*(1/3), ...
-        masterData(handles.f).VALL{handles.E1}+(masterData(handles.f).VALL{handles.E2}-masterData(handles.f).VALL{handles.E1}).*(2/3), ...
-        masterData(handles.f).VALL{handles.E2}];
-    order = 3;
-    open = true;
-    n = 101;
-    makeNeedles = false;
-    
-    s = splineMake(control, order, mult, open, n, makeNeedles);
-    
-    next = size(masterData(handles.f).EALL,1);
-    masterData(handles.f).EALL{next+1} = s;
-    
-    tmp = [handles.E2;next+1];
-    masterData(handles.f).ADJLIST{handles.E1,1} = [masterData(handles.f).ADJLIST{handles.E1,1},...
-        tmp];
-    tmp = [handles.E1;next+1];
-    masterData(handles.f).ADJLIST{handles.E2,1} = [masterData(handles.f).ADJLIST{handles.E2,1},...
-        tmp];
-    xlim = get(gca,'XLim');
-    ylim = get(gca,'YLim');
-    [handles.vH, handles.eH, handles.cpH] = ...
-        customdisplayGraph(handles.ALL(:,:,handles.f), ...
-        masterData(handles.f).VALL, masterData(handles.f).EALL, 'on');
-    set(gca,'XLim',xlim)
-    set(gca,'YLim',ylim)
-    handles.masterData = masterData;
-    handles.eDT = setEVoronoi(handles);
-    guidata(hObject,handles)
+    newhandles = edgeAdd(handles);
+    guidata(hObject,newhandles)
     return;
 end
-% 
-% Finds nearest edge and compare, change colors
-% [handles.cpIdx,handles.eD] = nearestNeighbor(handles.eDT,handles.cp);
-% for n = 1:length(handles.assoc)
-%     if ismember(handles.cpIdx,handles.assoc{n})
-%         handles.edgeIdx = n;
-%         break
-%     end
-% end
-handles.vIndex = handles.vertexIdx;
-handles.eIndex = handles.edgeIdx;
-guidata(hObject,handles)
 
-vProps = handles.vH{handles.vertexIdx};
-vprevProps = handles.vH{handles.prevVIdx};
-eProps = handles.eH{handles.edgeIdx};
-eprevProps = handles.eH{handles.prevEIdx};
-cProps = handles.cpH{handles.edgeIdx};
-cprevProps = handles.cpH{handles.prevEIdx};
-
-% Begin parameter extraction
-% if handles.getStats
-%     handles.cellStats = getCellData(handles);
-%     axes(handles.axes1)
-%     %b = fill(handles.polygons{handles.f}{handles.cellStats.faceIndex}(:,1), ...
-%      %   handles.polygons{handles.f}{handles.cellStats.faceIndex}(:,2), ...
-%       %  [0 0.5 0.5],'FaceAlpha',0.3,'EdgeAlpha',0);
-%     handles.getStats  = 0;
-%     handles.clickDown = 0;
-%     guidata(hObject,handles)
-%     return;
-
-if handles.vD < handles.eD
-    hold on;
-    set(vprevProps,'MarkerEdgeColor','r','MarkerFaceColor','r')
-    set(eprevProps,'Color','y')
-    set(cprevProps,'Visible','off')
-    set(vProps,'MarkerEdgeColor','g','MarkerFaceColor','g')
-    handles.prevVIdx = handles.vertexIdx; % Sets previous vertex equal to current
-    handles.onE = false; handles.onV = true;
-    guidata(hObject,handles)
-    return;
-else
-    hold on;
-    set(eprevProps,'Color','y')
-    set(cprevProps,'Visible','off')
-    set(vprevProps,'MarkerEdgeColor','r','MarkerFaceColor','r')
-    set(eProps,'Color','g')
-    set(cProps,'Visible','on')
-    handles.prevEIdx = handles.edgeIdx;
-    handles.onE = true; handles.onV = false;
-    guidata(hObject,handles)
-    return;
-end
+newhandles = changeColor(handles);
+guidata(hObject,newhandles)
 
 function trackPoint(hObject,eventdata)
-handles = guidata(hObject);    
-if handles.vertexIdx ~= -1 && handles.vD < handles.eD
-    masterData = handles.masterData; %Gets the data struct
-    handles.isChanged = 1;
-    newcp = get(gca,'CurrentPoint');
-    newcp = newcp(1, 1:2)';
-    masterData(1).VALL{handles.vertexIdx} = newcp; % Move point here.
-    edge = masterData(1).ADJLIST{handles.vertexIdx};
-    edgeSize = size(edge);
-    for i = 1:edgeSize(2)
-        splineNum = edge(2,i);
-        spline1 = masterData(handles.f).EALL{splineNum};
-        splineIdx = 1;
-        controls = spline1.control;
-
-        spl = controls(:, 1);
-        minn = abs(spl(1) - masterData(1).VALL{handles.vertexIdx}(1)) + ...
-                abs (spl(2) - masterData(1).VALL{handles.vertexIdx}(2));
-        spl = controls(:, length(controls));
-        subb = abs(spl(1) - masterData(1).VALL{handles.vertexIdx}(1)) + ...
-                abs (spl(2) - masterData(1).VALL{handles.vertexIdx}(2));
-        if subb < minn
-                splineIdx = length(controls);
-        end       
-        
-        controls(:, splineIdx) = newcp;
-        spline1.control = controls;
-        spline1 = splineEvalEven(spline1, true, true, false);
-        masterData(1).EALL{splineNum} = spline1;
-        set(handles.eH{splineNum},'XData', spline1.curve(1,:));
-        set(handles.eH{splineNum},'YData', spline1.curve(2,:));
-        set(handles.cpH{splineNum},'XData', spline1.control(1,:));
-        set(handles.cpH{splineNum},'YData', spline1.control(2,:));
-    end
-    set(gca,'XLim',xlim)
-    set(gca,'YLim',ylim)
-    handles.masterData = masterData;
-    guidata(hObject,handles);
-    vH = handles.vH; vProp = vH{handles.vertexIdx};
-    set(vProp,'XData',newcp(1),'YData',newcp(2))
-end
-
-if handles.onE && handles.clickDown == 1
-    handles.isChanged = 1;
-    masterData = handles.masterData; %Gets the data struct
-    newcp = get(gca,'CurrentPoint');
-    newcp = newcp(1, 1:2)';
-    spline1 = masterData(handles.f).EALL{handles.edgeIdx};
-    controls = spline1.control;
-    controlIdx = 1;
-    minn = 10000;
-    for j = 2: length(controls)-1
-        spl = controls(:,j);
-        subb = abs(spl(1) - newcp(1)) + ...
-                abs (spl(2) - newcp(2));
-        if subb < minn
-                controlIdx = j;
-                minn = subb;
-        end
-    end
-    controls(:, controlIdx) = newcp;
-    spline1.control = controls;
-    spline1 = splineEvalEven(spline1, true, true, false);
-    masterData(handles.f).EALL{handles.edgeIdx} = spline1;
-    set(handles.eH{handles.edgeIdx},'XData', spline1.curve(1,:));
-    set(handles.eH{handles.edgeIdx},'YData', spline1.curve(2,:));
-    set(handles.cpH{handles.edgeIdx},'XData', spline1.control(1,:));
-    set(handles.cpH{handles.edgeIdx},'YData', spline1.control(2,:));
-    
-    handles.masterData = masterData;
-    guidata(hObject,handles);
-end
+handles = guidata(hObject);
+newhandles = pointTrack(handles);
+guidata(hObject,newhandles)
 
 function stopTracking(hObject,eventdata)
 handles = guidata(hObject);
-if handles.isChanged == 0
-    handles.oldData(1) = [];
-end
-handles.isChanged = 0;
-handles.clickDown = 0;
-if handles.vertexIdx ~= -1
-    handles.vertexIdx = -1;
-    handles.vDT = setVVoronoi(handles);
-end
-if handles.clickDown ~= 0
-    handles.clickDown = 0;
-    handles.eDT = setEVoronoi(handles);
-end
-guidata(hObject,handles)
+newhandles = trackStop(handles);
+guidata(hObject,newhandles)
     
 function buttonPress(hObject,eventdata)
 handles = guidata(hObject);
@@ -486,135 +153,8 @@ switch eventdata.Key
     otherwise % do nothing
 end
 
-function handles = deleteVE(handles)
-if handles.onV
-    handles.oldData = [handles.masterData; handles.oldData];
-    index = handles.vIndex;
-    set(handles.vH{index},'Visible','off')
-    
-    tmpVvalue = handles.masterData(handles.f).VALL{index};
-    handles.masterData(handles.f).VALL{index} = [NaN;NaN];
-    adj = handles.masterData(handles.f).ADJLIST{index}; % More deletions
-    
-    if isempty(adj)
-        return;
-    else
-        if length(adj(1,:)) ==2
-            
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            order = 3;
-            open = true;
-            n = 101;
-            makeNeedles = false;
-            
-            ctrl1 = handles.masterData(handles.f).EALL{adj(2,1)}.control;
-            ctrl2 = handles.masterData(handles.f).EALL{adj(2,2)}.control;
-            
-            if ctrl1(:,1) == tmpVvalue
-                c2 = ctrl1;
-
-                if ctrl2(:,length(ctrl2)) == tmpVvalue
-                    c1 = ctrl2; 
-                else
-                    c1 = [fliplr(ctrl2(1,:));fliplr(ctrl2(2,:))];
-                end
- 
-            else
-                
-                c1 = ctrl1;
-
-                if ctrl2(:,1) == tmpVvalue
-                    c2 = ctrl2;
-                else
-                    
-                    c2 = [fliplr(ctrl2(1,:));fliplr(ctrl2(2,:))];
-                end
-            end
-            control = [c1(:,1:length(c1)-1),tmpVvalue,c2(:,2:length(c2))];
-            
-            k = length(ctrl1)+length(ctrl2) -3;
-            nctr = k + 2; % Number of control points
-            mult = ones(1, nctr - 3);
-            
-            s = splineMake(control, order, mult, open, n, makeNeedles);
-            
-            set(handles.eH{adj(2,1)},'Visible','off')
-            set(handles.cpH{adj(2,1)},'Visible','off')
-            set(handles.eH{adj(2,2)},'Visible','off')
-            set(handles.cpH{adj(2,2)},'Visible','off')
-            handles.masterData(handles.f).EALL{adj(2,1)}=[];
-            handles.masterData(handles.f).EALL{adj(2,2)}=[];
-            
-            next = length(handles.masterData(handles.f).EALL);
-            handles.masterData(handles.f).EALL{next+1} = s;
-            
-            masterData = handles.masterData;
-            
-            tmpAdj = masterData(handles.f).ADJLIST{adj(1,1)};
-            
-            for k = 1:length(tmpAdj(1,:))
-                if tmpAdj(1,k) == index
-                    
-                    masterData(handles.f).ADJLIST{adj(1,1)}(:,k) = [ adj(1,2)  ; next+1];
-                    
-                end
-            end
-            
-            tmpAdj = masterData(handles.f).ADJLIST{adj(1,2)};
-            
-            for k = 1:length(tmpAdj(1,:))
-                if tmpAdj(1,k) == index
-                    
-                    masterData(handles.f).ADJLIST{adj(1,2)}(:,k) = [ adj(1,1)  ; next+1];
-                    
-                end
-            end
-            
-            xlim = get(gca,'XLim');
-            ylim = get(gca,'YLim');
-            [handles.vH, handles.eH, handles.cpH] = ...
-                customdisplayGraph(handles.ALL(:,:,handles.f), ...
-                masterData(handles.f).VALL, masterData(handles.f).EALL, 'on');
-            set(gca,'XLim',xlim)
-            set(gca,'YLim',ylim)
-            handles.masterData = masterData;
-            handles.eDT = setEVoronoi(handles);
-            
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-        else
-            vert = adj(1,:);
-            edge = adj(2,:);
-            handles.masterData(handles.f).ADJLIST{index} = []; % Get rid of deleted vertex ADJLIST
-            for n = 1:numel(edge)
-                handles.masterData(handles.f).EALL{edge(n)} = []; % Get rid of incident
-                set(handles.eH{edge(n)},'Visible','off') % Edges visible off
-                handles.cpH{edge(n)} = []; % Delete plotted control points
-                adjMatrix = handles.masterData(handles.f).ADJLIST{vert(n)}; % Adjacent vertices' ADJLIST
-                adjMatrix(:,find(adjMatrix(1,:) == index)) = []; % Delete the old entry
-                handles.masterData(handles.f).ADJLIST{vert(n)} = adjMatrix; % Reset
-            end
-        end
-    end
-end
-if handles.onE
-    handles.oldData = [handles.masterData; handles.oldData];
-    index = handles.eIndex;
-    ctrlMatrix = handles.masterData(handles.f).EALL{index}.control;
-    vIndex1 = nearestNeighbor(handles.vDT,ctrlMatrix(:,1)');
-    vIndex2 = nearestNeighbor(handles.vDT,ctrlMatrix(:,end)');
-    adjMatrix1 = handles.masterData(handles.f).ADJLIST{vIndex1};
-    adjMatrix1(:,find(adjMatrix1(1,:) == vIndex2)) = [];
-    adjMatrix2 = handles.masterData(handles.f).ADJLIST{vIndex2};
-    adjMatrix2(:,find(adjMatrix2(1,:) == vIndex1)) = []; % Get rid of adjacencies
-    handles.masterData(handles.f).ADJLIST{vIndex1} = adjMatrix1;
-    handles.masterData(handles.f).ADJLIST{vIndex2} = adjMatrix2; % Reset
-    set(handles.eH{index},'Visible','off')
-    set(handles.cpH{index},'Visible','off')
-    handles.cpH{index} = [];
-    handles.masterData(handles.f).EALL{index} = [];
-end
+function handles = deleteVE(oldhandles)
+handles = deleteElement(oldhandles);
 
 % --- Outputs from this function are returned to the command line.
 function varargout = GraphGUI_OutputFcn(hObject, eventdata, handles)
@@ -632,16 +172,8 @@ function showGraph_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(hObject);
-mD = handles.masterData;
-if size(mD,2) < handles.f
-    error('No data on that frame!')
-end
-[handles.vH, handles.eH, handles.cpH] = ...
-    customdisplayGraph(handles.ALL(:,:,handles.f), ...
-    mD(handles.f).VALL, mD(handles.f).EALL, 'on');
-set(gca, 'XLim', [handles.zStX handles.zStoX])
-set(gca, 'YLim', [handles.zStY handles.zStoY])
-guidata(hObject,handles)
+newhandles = graphShow(handles);
+guidata(hObject,newhandles)
 
 function frame_Callback(hObject, eventdata, handles)
 % hObject    handle to frame (see GCBO)
@@ -655,6 +187,7 @@ handles.f = str2double(get(hObject,'String'));
 if size(handles.masterData,2) >= handles.f
     handles.vDT = setVVoronoi(handles);
     handles.eDT = setEVoronoi(handles);
+    handles.oldData = handles.masterData(handles.f);
     guidata(hObject,handles)
     showGraph_Callback(handles.showGraph,eventdata,handles)
 else
@@ -673,19 +206,13 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 function add_element_Callback(hObject, eventdata, handles)
 % hObject    handle to add_element (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(hObject);
-handles.addVertex = ~handles.addVertex;
-if handles.addVertex
-    set(handles.add_element,'BackgroundColor',[.76 .87 .78])
-else
-    set(handles.add_element,'BackgroundColor',[.941 .941 .941])
-end
-guidata(hObject,handles)
+newhandles = vertButton(handles);
+guidata(hObject,newhandles)
 
 function showRaw_Callback(hObject, eventdata, handles)
 % hObject    handle to showRaw (see GCBO)
@@ -698,16 +225,9 @@ function open_track_Callback(hObject, eventdata, handles)
 % hObject    handle to open_track (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-prompt = {'Starting frame:','Ending frame:'};
-dlg_title = 'Tracking Options'; num_lines = 1; defaultans = {'1','2'};
 handles = guidata(hObject);
-answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
-sFrame = str2double(answer(1)); eFrame = str2double(answer(2));
-[handles.masterData] = customMembraneTrack(handles.ALL, ...
-    handles.options, handles.masterData,sFrame,eFrame);
-data = handles.masterData;
-save('full_seq','data')
-guidata(hObject,handles)
+newhandles = trackandMovie(handles);
+guidata(hObject,newhandles)
 
 % --- Executes on button press in add_edge.
 function add_edge_Callback(hObject, eventdata, handles)
@@ -715,40 +235,20 @@ function add_edge_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(hObject);
-if handles.addEdge == 0
-    handles.addEdge = 1;
-else 
-    handles.addEdge = 0;
-end
-if handles.addEdge == 1
-    set(handles.add_edge,'BackgroundColor',[.76 .87 .78])
-else
-    set(handles.add_edge,'BackgroundColor',[.941 .941 .941])
-end
-guidata(hObject,handles)
+newhandles = edgeButton(handles);
+guidata(hObject,newhandles)
 
 % --- Executes on button press in load.
 function load_Callback(hObject, eventdata, handles)
 % hObject    handle to load (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global ALL;
 handles = guidata(hObject);
-[file1, path1] = uigetfile({'*.mat';'*.*'}, 'Choose a pre-processed .mat file.');
-data = load([path1,file1]);
-handles.masterData = data.data;
-[file2, path2] = uigetfile({'*.tif';'*.*'}, 'Choose a pre-processed .tif stack.');
-stack = loadtiff([path2,file2]);
-ALL = stack;
-handles.ALL = padarray(stack, [20,20,0]);
-handles.zStX = 20; handles.zStoX = size(handles.ALL(:,:,1),2)-19;
-handles.zStY = 20; handles.zStoY = size(handles.ALL(:,:,1),1)-19; % Zoom settings
-handles.f = 1;
-handles.vDT = setVVoronoi(handles); handles.eDT = setEVoronoi(handles);
-guidata(hObject,handles)
+newhandles = imLoad(handles);
+guidata(hObject,newhandles)
 showGraph_Callback(handles.showGraph, eventdata, handles)
 
-%% Menu items @@@ DO NOT EDIT @@@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Menu Bar %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function file_Callback(hObject, eventdata, handles)
 % hObject    handle to file (see GCBO)
@@ -804,18 +304,6 @@ handles = guidata(hObject);
 newhandles = deleteVE(handles);
 guidata(hObject,newhandles)
 
-function goFrame_Callback(hObject, eventdata, handles)
-% hObject    handle to goFrame (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-prompt = {'Go to Frame:'};
-dlg_title = 'Frame'; num_lines = 1; defaultans = {'1'};
-handles = guidata(hObject);
-answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
-handles.f = str2double(answer(1));
-guidata(hObject,handles)
-showRaw_Callback(handles.showRaw, eventdata, handles)
-
 function dataLoad_Callback(hObject, eventdata, handles)
 % hObject    handle to dataLoad (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -832,15 +320,9 @@ function undo_Callback(hObject, eventdata, handles)
 % hObject    handle to Undo (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.masterData = handles.oldData(1);
-if(length(handles.oldData) >= 2)
-    handles.oldData(1) = [];
-end
-handles.edgeIdx = 1;
-handles.vertexIdx = 1;
-handles.prevVIdx = 1;
-handles.prevEIdx = 1;
-guidata(hObject,handles)
+handles = guidata(hObject);
+newhandles = undo(handles);
+guidata(hObject,newhandles)
 showGraph_Callback(handles.showGraph,eventdata,handles);
 
 function getParameters_Callback(hObject, eventdata, handles)
@@ -848,10 +330,5 @@ function getParameters_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(hObject);
-for frame = 1:size(handles.masterData,2)
-    handles = makeCellPolygons(handles,frame); % Get polygons and centroids for every cell, every frame
-end
-cellStats = getCellData(handles);
-save('cellStats','cellStats')
-exportData('cellStats', '.csv')
-guidata(hObject,handles)
+newhandles = parameterGet(handles);
+guidata(hObject,newhandles)

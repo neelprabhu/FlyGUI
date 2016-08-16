@@ -1,4 +1,4 @@
-function exportData(dataName, endString)
+function exportData(dataName, endString, handles)
 % EXPORTDATA Converts MATLAB table structure that stores biological data
 % into .csv file, which opens in Excel.
 %
@@ -7,7 +7,7 @@ function exportData(dataName, endString)
 %
 % @author Virginia Cheng
 
-filename = strcat('seqParam_', datestr(datetime), endString);
+filename = handles.fileName;
 data = load(dataName);
  
 stats = data.cellStats;
@@ -16,4 +16,4 @@ for i = 1:length(stats)
      frameData = stats{i};
      results = [results; frameData];
 end
-writetable(results, filename);
+writetable(results, strcat(filename,'.csv'));
